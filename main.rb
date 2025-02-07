@@ -1,8 +1,8 @@
 ##########################################
 # Code  : Blockmesh Bot v.0.1 ruby 3.1.3 #
-# Autor : Kazuha (dune)                  #
-# Github: https://github.com/kazuha787/  #
-# Tg    : https://t.me/Offical_Im_Kazuha #
+# Autor : Furqonflynn (cmalf)            #
+# Github: https://github.com/cmalf/      #
+# Tg    : https://t.me/furqonflynn       #
 ##########################################
 
 require 'net/http'
@@ -24,17 +24,18 @@ RESET = "\e[0m"
 # Display coder sign
 def coder_mark
   puts <<~HEREDOC
-    ▗▖ ▗▖ ▗▄▖ ▗▄▄▄▄▖▗▖ ▗▖▗▖ ▗▖ ▗▄▖ 
-▐▌▗▞▘▐▌ ▐▌   ▗▞▘▐▌ ▐▌▐▌ ▐▌▐▌ ▐▌
-▐▛▚▖ ▐▛▀▜▌ ▗▞▘  ▐▌ ▐▌▐▛▀▜▌▐▛▀▜▌
-▐▌ ▐▌▐▌ ▐▌▐▙▄▄▄▖▝▚▄▞▘▐▌ ▐▌▐▌ ▐▌
-                               
-                               
-                               
+    ╭━━━╮╱╱╱╱╱╱╱╱╱╱╱╱╱╭━━━┳╮
+    ┃╭━━╯╱╱╱╱╱╱╱╱╱╱╱╱╱┃╭━━┫┃#{GREEN}
+    ┃╰━━┳╮╭┳━┳━━┳━━┳━╮┃╰━━┫┃╭╮╱╭┳━╮╭━╮
+    ┃╭━━┫┃┃┃╭┫╭╮┃╭╮┃╭╮┫╭━━┫┃┃┃╱┃┃╭╮┫╭╮╮#{BLUE}
+    ┃┃╱╱┃╰╯┃┃┃╰╯┃╰╯┃┃┃┃┃╱╱┃╰┫╰━╯┃┃┃┃┃┃┃
+    ╰╯╱╱╰━━┻╯╰━╮┣━━┻╯╰┻╯╱╱╰━┻━╮╭┻╯╰┻╯╰╯#{RESET}
+    ╱╱╱╱╱╱╱╱╱╱╱┃┃╱╱╱╱╱╱╱╱╱╱╱╭━╯┃
+    ╱╱╱╱╱╱╱╱╱╱╱╰╯╱╱╱╱╱╱╱╱╱╱╱╰━━╯
     #{GREEN}--------------------------------------
     #{YELLOW}[+]#{AM} BlockMesh Network Bot #{RESET}#{UL}v0.1.1#{RESET}
     #{GREEN}--------------------------------------
-    #{YELLOW}[+]#{BLUE} https://github.com/Kazuha787/
+    #{YELLOW}[+]#{BLUE} https://github.com/cmalf/
     #{GREEN}--------------------------------------#{RESET}
   HEREDOC
 end
