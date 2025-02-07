@@ -18,11 +18,11 @@ A Ruby bot for automating interactions with the Blockmesh Network, utilizing pro
 
 - 🧬 Clone This Repository
   ```bash
-  git clone https://github.com/Kazuha787/blockmesh-network-bot-kazuha.git
+  git clone https://github.com/Kazuha787/blockmesh-network-bot2-kazuha.git
   ```
 - 📂 Go to Folder
   ```bash
-  cd blockmesh-network-bot-kazuha
+  cd blockmesh-network-bot2-kazuha
   ```
 - ♦️ Install Dependencies
   ```bash
