@@ -1,8 +1,8 @@
 ##########################################
 # Code  : Blockmesh Bot v.0.1 ruby 3.1.3 #
-# Autor : Kazuha #
-# Github: https://github.com/Kazuha787/      #
-# Tg    : https://t.me/Offical_Im_kazuha      #
+# Autor : Kazuha (dune)                  #
+# Github: https://github.com/kazuha787/  #
+# Tg    : https://t.me/Offical_Im_Kazuha #
 ##########################################
 
 require 'net/http'
@@ -24,14 +24,17 @@ RESET = "\e[0m"
 # Display coder sign
 def coder_mark
   puts <<~HEREDOC
-    ▗▖ ▗▖ ▗▄▖ ▗▄▄▄▄▖▗▖ ▗▖▗▖ ▗▖ ▗▄▖
-    ▐▌▗▞▘▐▌ ▐▌   ▗▞▘▐▌ ▐▌▐▌ ▐▌▐▌ ▐▌
-    ▐▛▚▖ ▐▛▀▜▌ ▗▞▘  ▐▌ ▐▌▐▛▀▜▌▐▛▀▜▌
-    ▐▌ ▐▌▐▌ ▐▌▐▙▄▄▄▖▝▚▄▞▘▐▌ ▐▌▐▌ ▐▌
+    ▗▖ ▗▖ ▗▄▖ ▗▄▄▄▄▖▗▖ ▗▖▗▖ ▗▖ ▗▄▖ 
+▐▌▗▞▘▐▌ ▐▌   ▗▞▘▐▌ ▐▌▐▌ ▐▌▐▌ ▐▌
+▐▛▚▖ ▐▛▀▜▌ ▗▞▘  ▐▌ ▐▌▐▛▀▜▌▐▛▀▜▌
+▐▌ ▐▌▐▌ ▐▌▐▙▄▄▄▖▝▚▄▞▘▐▌ ▐▌▐▌ ▐▌
+                               
+                               
+                               
     #{GREEN}--------------------------------------
     #{YELLOW}[+]#{AM} BlockMesh Network Bot #{RESET}#{UL}v0.1.1#{RESET}
     #{GREEN}--------------------------------------
-    #{YELLOW}[+]#{BLUE} https://github.com/cmalf/
+    #{YELLOW}[+]#{BLUE} https://github.com/Kazuha787/
     #{GREEN}--------------------------------------#{RESET}
   HEREDOC
 end
@@ -243,4 +246,218 @@ def authenticate(proxy)
     http.use_ssl = true
     http.verify_mode = OpenSSL::SSL::VERIFY_NONE
     
-    request = Net
+    request = Net::HTTP::Post.new(uri)
+    login_headers.each { |k, v| request[k] = v }
+    request.body = login_data.to_json
+    
+    response = http.request(request)
+    raise "HTTP Error" unless response.is_a?(Net::HTTPSuccess)
+    
+    auth_data = JSON.parse(response.body)
+    api_token = auth_data['api_token']
+
+    $proxy_tokens[proxy] = api_token
+    save_credentials($email_input, api_token, $password_input)
+
+    puts "[#{Time.now.strftime('%H:%M:%S')}] #{'Login successful'.green} | #{proxy.blue}"
+    api_token
+  rescue => e
+    error_message = e.message
+    puts "[#{Time.now.strftime('%H:%M:%S')}] Login failed | #{proxy} : #{error_message}".red
+    
+    if handle_proxy_error(proxy, error_message)
+      Thread.current.exit # Exit the current thread if proxy is removed
+    end
+    
+    nil
+  end
+end
+
+def send_uptime_report(api_token, ip_addr, proxy)
+  proxy_config = format_proxy(proxy)
+  report_endpoint = "https://app.blockmesh.xyz/api/report_uptime?email=#{$email_input}&api_token=#{api_token}&ip=#{ip_addr}"
+  
+  report_headers = {
+    "accept" => "*/*",
+    "content-type" => "text/plain;charset=UTF-8",
+    "origin" => "chrome-extension://obfhoiefijlolgdmphcekifedagnkfjp",
+    "user-agent" => "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+  }
+
+  begin
+    response = Net::HTTP.post(URI(report_endpoint), {}, report_headers)
+    raise "HTTP Error" unless response.is_a?(Net::HTTPSuccess)
+  rescue => e
+    $proxy_tokens.delete(proxy) if $proxy_tokens.key?(proxy)
+  end
+end
+
+def process_proxy(proxy)
+  first_run = true
+  loop do
+    if first_run || !$proxy_tokens.key?(proxy)
+      api_token = authenticate(proxy)
+      first_run = false
+    else
+      api_token = $proxy_tokens[proxy]
+    end
+
+    if api_token
+      proxy_config = format_proxy(proxy)
+      ip_info = get_ip_info(proxy_config[:http].split('@').last.split(':').first)
+
+      connect_websocket($email_input, api_token)
+      sleep(rand(60..120))
+
+      submit_bandwidth($email_input, api_token, ip_info, proxy_config)
+      sleep(rand(60..120))
+
+      get_and_submit_task($email_input, api_token, ip_info, proxy_config)
+      sleep(rand(60..120))
+
+      send_uptime_report(api_token, ip_info['ip'], proxy)
+      sleep(rand(900..1200))
+    end
+
+    sleep(10)
+  end
+end
+
+# Handle SIGINT
+Signal.trap('INT') do
+  puts "#{BLUE}\nReceived SIGINT. Stopping Script with Blessing...#{RESET}"
+  exit 0
+end
+
+def main
+  system('clear')
+  coder_mark
+  credentials = load_credentials
+
+  if credentials
+    $email_input = credentials['email']
+    $api_token = credentials['api_token']
+    $password_input = credentials['password']
+  else
+    puts "\n#{YELLOW}[+]#{RESET} Please Login to your Blockmesh Account:\n"
+    print "\n)> Enter Email: ".green
+    $email_input = gets.chomp
+    print ")> Enter Password: ".green
+    $password_input = gets.chomp
+  end
+  system('clear')
+  coder_mark
+  puts "\nSelect Connection Type:"
+  puts "\n#{'1.'.yellow} #{'Direct Connection'.green} (No Proxy)"
+  puts "#{'2.'.yellow} #{'Proxy Connection'.blue}\n"
+  print "\n#{')>'.yellow} Choose (1/2): "
+  choice = gets.chomp.to_i
+
+  if choice == 1
+    process_direct_connection
+  else
+    process_proxy_connections
+  end
+end
+
+def process_direct_connection
+  system('clear')
+  coder_mark
+  puts "\n#{')>'.blue} Running Direct Connection...\n\n"
+  loop do
+    api_token = authenticate_direct
+    if api_token
+      ip_info = get_ip_info(get_public_ip)
+      puts "\n[#{Time.now.strftime('%H:%M:%S')}]" + " IP Address | #{ip_info['ip']} ".green
+      
+      connect_websocket($email_input, api_token)
+      sleep(3)
+      puts "\n#{')>'.yellow} #{'Please wait... before next cycle'.light_cyan}\n"
+      sleep(rand(60..120))
+
+      submit_bandwidth($email_input, api_token, ip_info)
+      sleep(rand(60..120))
+
+      get_and_submit_task($email_input, api_token, ip_info)
+      sleep(rand(60..120))
+
+      send_uptime_report(api_token, ip_info['ip'])
+      sleep(rand(900..1200))
+    end
+    sleep(10)
+
+  end
+end
+
+def process_proxy_connections
+  system('clear')
+  coder_mark
+  proxy_list_path = "proxy.txt"
+  if File.exist?(proxy_list_path)
+    proxies_list = File.readlines(proxy_list_path).map(&:chomp)
+    puts "\n#{')>'.yellow} #{'Loaded'.green} #{proxies_list.size} #{'proxies from proxy.txt'.green}"
+  else
+    puts "\n#{')>'.yellow} #{'proxy.txt not found!'.red}"
+    exit
+  end
+
+  puts "\n#{')>'.blue} Running Proxy Bots...\n\n"
+  threads = []
+  proxies_list.each do |proxy|
+    thread = Thread.new { process_proxy(proxy) }
+    threads << thread
+    sleep(1)
+  end
+  sleep(2)
+  puts "\n#{')>'.yellow} #{'Please wait... before next cycle'.light_cyan}\n"
+
+  threads.each(&:join)
+end
+
+def get_public_ip
+  uri = URI("https://api.ipify.org")
+  response = Net::HTTP.get_response(uri)
+  response.body.strip
+end
+
+def authenticate_direct
+  if $api_token
+    return $api_token
+  end
+
+  login_endpoint = "https://api.blockmesh.xyz/api/get_token"
+  login_headers = {
+    "accept" => "*/*",
+    "content-type" => "application/json",
+    "origin" => "https://app.blockmesh.xyz",
+    "user-agent" => "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+  }
+
+  login_data = { email: $email_input, password: $password_input }
+
+  begin
+    uri = URI(login_endpoint)
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = true
+    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    
+    request = Net::HTTP::Post.new(uri)
+    login_headers.each { |k, v| request[k] = v }
+    request.body = login_data.to_json
+    
+    response = http.request(request)
+    raise "HTTP Error" unless response.is_a?(Net::HTTPSuccess)
+    
+    auth_data = JSON.parse(response.body)
+    $api_token = auth_data['api_token']
+    
+    save_credentials($email_input, $api_token, $password_input)
+    puts "[#{Time.now.strftime('%H:%M:%S')}]" + " Direct connection login successful".green
+    $api_token
+  rescue => e
+    puts "[#{Time.now.strftime('%H:%M:%S')}]" + " Direct connection login failed: #{e}".red
+    nil
+  end
+end
+
+main if __FILE__ == $0
