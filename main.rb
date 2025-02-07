@@ -1,8 +1,8 @@
 ##########################################
 # Code  : Blockmesh Bot v.0.1 ruby 3.1.3 #
-# Autor : Furqonflynn (cmalf)            #
-# Github: https://github.com/cmalf/      #
-# Tg    : https://t.me/furqonflynn       #
+# Autor : Kazuha787 (dune)               #
+# Github: https://github.com/kazuha787/  #
+# Tg    : https://t.me/Offical_im_kazuha #
 ##########################################
 
 require 'net/http'
@@ -36,7 +36,7 @@ def coder_mark
     #{GREEN}--------------------------------------
     #{YELLOW}[+]#{AM} BlockMesh Network Bot #{RESET}#{UL}v0.1.1#{RESET}
     #{GREEN}--------------------------------------
-    #{YELLOW}[+]#{BLUE} https://github.com/cmalf/
+    #{YELLOW}[+]#{BLUE} https://github.com/Kazuha787/
     #{GREEN}--------------------------------------#{RESET}
   HEREDOC
 end
